@@ -1,11 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import Axios from 'axios';
 function App() {
   const [password,setPassword]=useState('')
   const [title,setTitle]=useState('')
+  const [list,setList]=useState([])
   const addPassword=()=>{
     Axios.post('http://localhost:3001/addPassword',{password:password,title:title})
+    Axios.get('http://localhost:3001/showPasswords').then((response)=>{
+      setList(response.data)
+    })
+  }
+  useEffect(()=>{
+    Axios.get('http://localhost:3001/showPasswords').then((response)=>{
+      setList(response.data)
+    })
+  },[])
+  const decryptPassword=(encrypt)=>{
+    Axios.post('http://localhost:3001/decryptPassword',{password:encrypt.password,iv:encrypt.iv})
   }
   return (
     <div className="App">
@@ -13,6 +25,15 @@ function App() {
         <input type='password' placeholder='Example password 123' onChange={(e)=>setPassword(e.target.value)}/>
         <input type='text' placeholder='title' onChange={(e)=>setTitle(e.target.value)}/>
         <button onClick={addPassword}>Add Password</button>
+      </div>
+      <div className='Passwords'>
+        {list.map((val)=>{
+          return(
+            <div key={val.id} className='password' onClick={()=>{decryptPassword({password:val.password,iv:val.iv})}}>
+              <h3 >{val.title}</h3>
+            </div>
+          )
+        })}
       </div>
     </div>
   );
