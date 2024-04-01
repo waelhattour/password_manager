@@ -3,6 +3,7 @@ const app=express()
 const PORT=3001
 const cors=require('cors')
 const mysql=require('mysql')
+const {encrypt,decrypt}=require('./EncryptionHandler')
 app.use(cors())
 app.use(express.json())
 const db=mysql.createConnection({
@@ -13,8 +14,9 @@ const db=mysql.createConnection({
 });
 app.post('/addPassword',(req,res)=>{
     const {password,title}=req.body;
-    db.query(`INSERT INTO passwords (password, title) VALUES (?,?)`,
-    [password,title],
+    const hashedPassword=encrypt(password)
+    db.query(`INSERT INTO passwords (password, title, iv) VALUES (?,?,?)`,
+    [ hashedPassword.password,title, hashedPassword.iv],
     (err,result)=>{
         if(err){
             console.log(err)
